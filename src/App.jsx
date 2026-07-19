@@ -4,10 +4,11 @@ import {
   Activity, Microscope, Layers, Radar, Snowflake, Thermometer,
   Box, Package, Truck, ShieldCheck, Droplet, TestTube, FlaskConical,
   Beaker, Wrench, Settings2, Gauge, Wind, Table2, DoorClosed,
-  Radio, Timer, Dna, ArrowRight, CircleDot, Scan, Users, Handshake, Globe
+  Radio, Timer, Dna, ArrowRight, CircleDot, Scan, Users, Handshake, Globe,
+  Maximize2
 } from "lucide-react";
 import { PRODUCT_IMAGES } from "./product_images";
-import { PARTNER_IMAGES, PARTNER_VIDEO } from "./partner_images";
+import { PARTNER_IMAGES, PARTNER_VIDEO, DIAPRO_ORIENTATION_VIDEO } from "./partner_images";
 
 /* ---------------------------------------------------------------
    ETS — Exquisite Products Trading Services
@@ -54,7 +55,7 @@ const CATEGORIES = [
   {
     id: "diagnostics",
     eyebrow: "Dia-Pro · Türkiye",
-    title: "Diagnostic Automation",
+    title: "Blood Bank Automation",
     blurb: "Gel-card blood grouping and cross-match automation, from sample loading to result imaging.",
     icon: Radar,
     items: [
@@ -154,6 +155,77 @@ const WHY = [
   { title: "Rapid delivery", body: "Streamlined logistics keep critical supplies on schedule.", icon: Truck },
   { title: "Customer-centric", body: "Solutions tailored to each institution's own workflow.", icon: Activity },
 ];
+
+/* ---------------- Lightbox (click-to-fullscreen for images & video) ---------------- */
+const LightboxContext = React.createContext(() => {});
+
+function useLightbox() {
+  return React.useContext(LightboxContext);
+}
+
+function LightboxProvider({ children }) {
+  const [media, setMedia] = useState(null); // { type: 'image'|'video', src, alt, poster }
+
+  const open = useCallback((m) => setMedia(m), []);
+  const close = useCallback(() => setMedia(null), []);
+
+  useEffect(() => {
+    if (!media) return;
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [media, close]);
+
+  return (
+    <LightboxContext.Provider value={open}>
+      {children}
+      {media && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-10"
+          style={{ background: "rgba(2,10,17,0.92)", backdropFilter: "blur(4px)" }}
+          onClick={close}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            onClick={close}
+            aria-label="Close fullscreen view"
+            className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+            style={{ background: "rgba(6,24,38,0.8)", border: "1px solid rgba(159,239,247,0.35)", color: TOKENS.cyanBright }}
+          >
+            <X size={20} />
+          </button>
+          {media.type === "video" ? (
+            <video
+              src={media.src}
+              poster={media.poster}
+              controls
+              autoPlay
+              playsInline
+              className="max-w-full max-h-full rounded-xl"
+              style={{ boxShadow: "0 30px 80px -20px rgba(0,0,0,0.8)" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              Sorry, your browser does not support embedded video.
+            </video>
+          ) : (
+            <img
+              src={media.src}
+              alt={media.alt || ""}
+              className="max-w-full max-h-full object-contain rounded-xl"
+              style={{ boxShadow: "0 30px 80px -20px rgba(0,0,0,0.8)" }}
+              onClick={(e) => e.stopPropagation()}
+            />
+          )}
+        </div>
+      )}
+    </LightboxContext.Provider>
+  );
+}
 
 /* ---------------- Reduced motion hook ---------------- */
 function usePrefersReducedMotion() {
@@ -338,15 +410,15 @@ function CellField({ density = 1, speed = 1, opacity = 1 }) {
         const rr = c.r * pulse;
 
         const grad = ctx.createRadialGradient(c.x, c.y, rr * 0.1, c.x, c.y, rr);
-        grad.addColorStop(0, "rgba(159, 239, 247, 0.28)");
-        grad.addColorStop(0.65, "rgba(79, 195, 217, 0.14)");
-        grad.addColorStop(1, "rgba(79, 195, 217, 0)");
+        grad.addColorStop(0, "rgba(185, 45, 45, 0.32)");
+        grad.addColorStop(0.65, "rgba(139, 24, 24, 0.16)");
+        grad.addColorStop(1, "rgba(139, 24, 24, 0)");
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(c.x, c.y, rr, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = "rgba(159, 239, 247, 0.22)";
+        ctx.strokeStyle = "rgba(185, 45, 45, 0.26)";
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.arc(c.x, c.y, rr * 0.55, 0, Math.PI * 2);
@@ -425,6 +497,7 @@ function ConnectorRail() {
 function ProductCard({ item, index }) {
   const Icon = item.icon;
   const photo = item.img ? PRODUCT_IMAGES[item.img] : null;
+  const openLightbox = useLightbox();
   return (
     <div
       className="group relative shrink-0 w-[240px] sm:w-[260px] rounded-2xl overflow-hidden flex flex-col snap-start"
@@ -443,7 +516,8 @@ function ProductCard({ item, index }) {
             src={photo}
             alt={item.name}
             loading="lazy"
-            className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.08]"
+            onClick={() => openLightbox({ type: "image", src: photo, alt: item.name })}
+            className="w-full h-full object-contain p-3 transition-transform duration-500 group-hover:scale-[1.08] cursor-zoom-in"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -575,13 +649,20 @@ function CategorySection({ cat, index }) {
 
 /* ---------------- Partners ---------------- */
 function PartnerPhoto({ src, alt }) {
+  const openLightbox = useLightbox();
   return (
     <div
       className="relative rounded-2xl overflow-hidden aspect-[4/3]"
       style={{ border: "1px solid rgba(79,195,217,0.18)", boxShadow: "0 10px 30px -14px rgba(0,0,0,0.6)" }}
     >
       {src ? (
-        <img src={src} alt={alt} className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        <img
+          src={src}
+          alt={alt}
+          className="absolute inset-0 w-full h-full object-cover cursor-zoom-in"
+          loading="lazy"
+          onClick={() => openLightbox({ type: "image", src, alt })}
+        />
       ) : (
         <div
           className="absolute inset-0 flex items-center justify-center"
@@ -605,6 +686,7 @@ function PartnerPhoto({ src, alt }) {
 /* Same footprint as PartnerPhoto so the demo video sits in the same row,
    at the same size, instead of stacking as a separate full-width block. */
 function PartnerVideo({ src, poster, label }) {
+  const openLightbox = useLightbox();
   return (
     <div
       className="relative rounded-2xl overflow-hidden aspect-[4/3]"
@@ -619,6 +701,14 @@ function PartnerVideo({ src, poster, label }) {
       >
         Sorry, your browser does not support embedded video.
       </video>
+      <button
+        onClick={() => openLightbox({ type: "video", src, poster })}
+        aria-label="View video fullscreen"
+        className="absolute bottom-2 right-2 w-8 h-8 rounded-lg flex items-center justify-center hover:scale-105 transition-transform"
+        style={{ background: "rgba(6,24,38,0.75)", border: "1px solid rgba(159,239,247,0.35)" }}
+      >
+        <Maximize2 size={14} color={TOKENS.cyanBright} strokeWidth={2} />
+      </button>
       <div className="absolute inset-x-0 top-0 px-3 py-2.5 pointer-events-none" style={{ background: "linear-gradient(to bottom, rgba(6,24,38,0.97) 40%, rgba(6,24,38,0.75) 75%, transparent)" }}>
         <p
           className="text-[12.5px] font-medium tracking-wide leading-snug"
@@ -633,6 +723,9 @@ function PartnerVideo({ src, poster, label }) {
 
 function PartnersSection() {
   const hasVideo = Boolean(PARTNER_VIDEO);
+  const hasOrientationVideo = Boolean(DIAPRO_ORIENTATION_VIDEO);
+  const videoCount = (hasVideo ? 1 : 0) + (hasOrientationVideo ? 1 : 0);
+  const colsClass = videoCount === 2 ? "md:grid-cols-5" : videoCount === 1 ? "md:grid-cols-4" : "md:grid-cols-3";
   return (
     <section id="partners" className="py-16 md:py-20 border-t" style={{ borderColor: "rgba(79,195,217,0.1)" }}>
       <div className="max-w-6xl mx-auto px-6">
@@ -645,15 +738,15 @@ function PartnersSection() {
           </h2>
         </Reveal>
 
-        <div className={`grid grid-cols-2 ${hasVideo ? "md:grid-cols-4" : "md:grid-cols-3"} gap-5`}>
+        <div className={`grid grid-cols-2 ${colsClass} gap-5`}>
           <Reveal delay={0}>
             <PartnerPhoto src={PARTNER_IMAGES.bmedBooth} alt="Visiting B Medical booth in Luxembourg" />
           </Reveal>
           <Reveal delay={80}>
-            <PartnerPhoto src={PARTNER_IMAGES.bmedTeam} alt="B Medical booth visit — Arab Health 2026, UAE" />
+            <PartnerPhoto src={PARTNER_IMAGES.bmedTeam} alt="LP Italiana booth visit — Arab Health 2026, UAE" />
           </Reveal>
           <Reveal delay={160}>
-            <PartnerPhoto src={PARTNER_IMAGES.lpItaliana} alt="LP Italiana booth visit — Arab Health 2026, UAE" />
+            <PartnerPhoto src={PARTNER_IMAGES.lpItaliana} alt="B Medical booth visit — Arab Health 2026, UAE" />
           </Reveal>
           {hasVideo && (
             <Reveal delay={240}>
@@ -661,6 +754,15 @@ function PartnersSection() {
                 src={PARTNER_VIDEO}
                 poster={PRODUCT_IMAGES.dp_octohawk}
                 label="Visit at DiaPro — Türkiye for Octohawk inspection"
+              />
+            </Reveal>
+          )}
+          {hasOrientationVideo && (
+            <Reveal delay={320}>
+              <PartnerVideo
+                src={DIAPRO_ORIENTATION_VIDEO}
+                poster={PRODUCT_IMAGES.dp_octohawk}
+                label="Orientation on Dia-Pro products by our engineer"
               />
             </Reveal>
           )}
@@ -672,6 +774,7 @@ function PartnersSection() {
 
 /* ---------------- Contact / footer section ---------------- */
 function ContactSection() {
+  const openLightbox = useLightbox();
   return (
     <section id="contact" className="relative py-24 md:py-32 overflow-hidden border-t" style={{ borderColor: "rgba(79,195,217,0.1)" }}>
       <div className="absolute inset-0" aria-hidden="true">
@@ -696,7 +799,8 @@ function ContactSection() {
               <img
                 src={PRODUCT_IMAGES.ets_logo}
                 alt="ETS — Exquisite Products Trading Services"
-                className="max-w-full max-h-full w-auto h-auto object-contain opacity-95"
+                className="max-w-full max-h-full w-auto h-auto object-contain opacity-95 cursor-zoom-in"
+                onClick={() => openLightbox({ type: "image", src: PRODUCT_IMAGES.ets_logo, alt: "ETS — Exquisite Products Trading Services" })}
               />
             </div>
           ) : (
@@ -850,10 +954,10 @@ function Hero() {
             Exquisite Products Trading Services
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl leading-[1.05] max-w-3xl" style={{ color: TOKENS.paper, fontFamily: "'Fraunces', serif", fontWeight: 600 }}>
-            Certified laboratory & blood-bank infrastructure, delivered across the region.
+            Certified Laboratory & Blood-Bank Infrastructure, Delivered Across The Region.
           </h1>
           <p className="mt-6 text-base md:text-lg max-w-2xl opacity-75" style={{ color: TOKENS.paper }}>
-            Diagnostic automation, cold-chain storage, disposables and lab furniture — sourced from
+            Diagnostic automation, cold-chain storage, disposables and lab furniture — sourced and distributed from
             world-class manufacturers and backed by factory-certified engineers on the ground.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
@@ -929,18 +1033,20 @@ function Footer() {
 /* ---------------- App (default export — the actual page) ---------------- */
 export default function App() {
   return (
-    <div style={{ background: TOKENS.ink }} className="min-h-screen">
-      <Header />
-      <Hero />
-      <WhySection />
-      {CATEGORIES.map((cat, i) => (
-        <CategorySection key={cat.id} cat={cat} index={i} />
-      ))}
-      <PartnersSection />
-      <ContactSection />
-      <Footer />
-    </div>
+    <LightboxProvider>
+      <div style={{ background: TOKENS.ink }} className="min-h-screen">
+        <Header />
+        <Hero />
+        <WhySection />
+        {CATEGORIES.map((cat, i) => (
+          <CategorySection key={cat.id} cat={cat} index={i} />
+        ))}
+        <PartnersSection />
+        <ContactSection />
+        <Footer />
+      </div>
+    </LightboxProvider>
   );
 }
 
-export { CATEGORIES, WHY, CONTACT, TOKENS, BG_IMAGES, Reveal, NetworkCanvas, CellField, SectionAmbient, DriftingArt, ConnectorRail, ProductCard, CategorySection, PartnersSection, ContactSection, Header, Hero, WhySection, Footer };
+export { CATEGORIES, WHY, CONTACT, TOKENS, BG_IMAGES, Reveal, NetworkCanvas, CellField, SectionAmbient, DriftingArt, ConnectorRail, ProductCard, CategorySection, PartnersSection, ContactSection, Header, Hero, WhySection, Footer, LightboxProvider, useLightbox };
