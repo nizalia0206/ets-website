@@ -40,8 +40,8 @@ const CONTACT = {
   email: "info@etsksa.com",
   website: "www.etsksa.com",
   phones: [
-    { label: "Al Khobar", value: "+966 (0)13 819 0064" },
-    { label: "Dammam", value: "+966 (0)13 881 9992" },
+    { label: "Telephone", value: "+966 (0)13 819 0064" },
+    { label: "Telephone", value: "+966 (0)13 881 9992" },
     { label: "Mobile", value: "+966 59 559 9948" },
     { label: "Mobile", value: "+966 50 127 8615" },
     { label: "UAE", value: "+971 50 345 1489" },
@@ -792,7 +792,7 @@ function Header() {
   return (
     <header className="sticky top-0 z-50" style={{ background: "rgba(6,24,38,0.86)", backdropFilter: "blur(10px)", borderBottom: "1px solid rgba(79,195,217,0.14)" }}>
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-6">
-        <a href="#top" className="shrink-0 text-lg tracking-wide font-semibold" style={{ color: TOKENS.paper, fontFamily: "'Fraunces', serif" }}>
+        <a href="#top" className="shrink-0 text-6xl tracking-wide font-semibold" style={{ color: TOKENS.paper, fontFamily: "'Fraunces', serif" }}>
           ETS
         </a>
         <nav className="hidden md:flex items-center gap-5 lg:gap-7 text-[13px] lg:text-sm flex-nowrap">
