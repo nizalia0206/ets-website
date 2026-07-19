@@ -53,7 +53,7 @@ const CONTACT = {
 
 const CATEGORIES = [
   {
-    id: "diagnostics",
+    id: "Blood Bank Automation",
     eyebrow: "Dia-Pro · Türkiye",
     title: "Blood Bank Automation",
     blurb: "Gel-card blood grouping and cross-match automation, from sample loading to result imaging.",
