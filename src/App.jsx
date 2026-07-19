@@ -389,8 +389,8 @@ function CellField({ density = 1, speed = 1, opacity = 1 }) {
       cells = Array.from({ length: count }, () => ({
         x: Math.random() * w,
         y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3 * speed,
-        vy: (Math.random() - 0.5) * 0.3 * speed,
+        vx: (Math.random() - 0.5) * 0.65 * speed,
+        vy: (Math.random() - 0.5) * 0.65 * speed,
         r: Math.random() * 15 + 9,
         wobble: Math.random() * Math.PI * 2,
       }));
@@ -410,16 +410,22 @@ function CellField({ density = 1, speed = 1, opacity = 1 }) {
         const rr = c.r * pulse;
 
         const grad = ctx.createRadialGradient(c.x, c.y, rr * 0.1, c.x, c.y, rr);
-        grad.addColorStop(0, "rgba(185, 45, 45, 0.32)");
-        grad.addColorStop(0.65, "rgba(139, 24, 24, 0.16)");
-        grad.addColorStop(1, "rgba(139, 24, 24, 0)");
+        grad.addColorStop(0, "rgba(150, 0, 0, 0.6)");
+        grad.addColorStop(0.65, "rgba(120, 0, 0, 0.35)");
+        grad.addColorStop(1, "rgba(120, 0, 0, 0)");
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(c.x, c.y, rr, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = "rgba(185, 45, 45, 0.26)";
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(220, 20, 20, 0.7)";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, rr, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(200, 15, 15, 0.5)";
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
         ctx.arc(c.x, c.y, rr * 0.55, 0, Math.PI * 2);
         ctx.stroke();
@@ -946,7 +952,7 @@ function Hero() {
     <section id="top" className="relative overflow-hidden min-h-[86vh] flex items-center" style={{ background: `radial-gradient(120% 100% at 50% 0%, ${TOKENS.navyDeep}, ${TOKENS.ink})` }}>
       <div className="absolute inset-0 opacity-70">
         <NetworkCanvas speed={1.3} />
-        <CellField speed={1.2} />
+        <CellField speed={2} />
       </div>
       <div className="relative max-w-6xl mx-auto px-6 py-24 w-full">
         <Reveal>
@@ -957,7 +963,7 @@ function Hero() {
             Certified Laboratory & Blood-Bank Infrastructure, Delivered Across The Region.
           </h1>
           <p className="mt-6 text-base md:text-lg max-w-2xl opacity-75" style={{ color: TOKENS.paper }}>
-            Diagnostic automation, cold-chain storage, disposables and lab furniture — sourced and distributed from
+            Blood bank automation, cold-chain storage, disposables and lab furniture — sourced and distributed from
             world-class manufacturers and backed by factory-certified engineers on the ground.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
